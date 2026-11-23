@@ -31,6 +31,9 @@ class TestConceptLadder(unittest.TestCase):
         self.assertEqual(parse_letter("B. Readers and one writer can proceed concurrently"), "B")
         self.assertEqual(parse_letter("Answer: A. A specific technical option"), "A")
         self.assertEqual(parse_letter("Check the window and the ACK.\nFINAL: C"), "C")
+        self.assertEqual(parse_letter("A\n\nThe IP subnet is /26."), "A")
+        self.assertEqual(parse_letter("B. 1\n\nThe CNAME expired."), "B")
+        self.assertIsNone(parse_letter("A server starts the handshake."))
         self.assertIsNone(parse_letter("B, because the standard says so"))
         self.assertIsNone(parse_letter("E"))
 

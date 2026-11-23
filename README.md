@@ -4,13 +4,38 @@
 
 ConceptLadder is a small, open-source knowledge-depth benchmark. Instead of mixing unrelated trivia, it puts four progressively harder questions around the *same technical concept*. It also compares the exact same questions across two model builds, including original GGUF and a Q4Fit quantization.
 
-**v0.2:** two separate suites. **Classic** keeps the original 36 introductory MCQs. **Hard** generates **240 deterministic, source-grounded scenario questions** from 15 concept families (4 levels × 4 seeded variants), across networking, databases, Linux, and security. MIT licensed. Python standard library only.
+**v0.3:** three reproducible suites: **Classic** (36 basic MCQs), **Hard v0.2** (the original 240 challenging technical scenarios, unchanged), and **Ladder v0.3** (240 scenarios with redesigned L1 entry questions and separately controlled question and answer seeds). MIT licensed. Python standard library only.
+
+## Ladder v0.3: calibrated pilot
+
+The previous Hard v0.2 was useful for challenging small models, but its four levels were not consistently ordered: a Qwen3 14B pilot scored *worse* on L1 than on L2. Instead of rewriting past benchmark data, v0.3 introduces a separate `--suite ladder`. The old `--suite hard` stays unchanged for exact reproduction of published runs.
+
+Ladder v0.3 makes the entry task simpler for 11 of 15 concepts (including TCP ACKs, SQLite, DNS, file offsets, JWT and RBAC) while leaving the difficult cases at L2–L4. Answers are still determined by local computations or real SQLite/POSIX operations. The initial 14B pilot displayed a strictly descending **aggregate** L1→L4 success rate on three forms; individual concepts can still violate this order, so the levels remain provisional rather than psychometrically validated.
+
+```bash
+python3 -m conceptladder validate --suite ladder
+python3 -m conceptladder run   --suite ladder --variants 4 --seed 17 --answer-seed 63   --url http://127.0.0.1:8080/v1 --model local   --out results/ladder-q17-a63.json
+```
+
+`--seed` changes the **scenario values**. `--answer-seed` independently changes A/B/C/D choice ordering. Set both the same across models for fair paired comparisons; hold the question seed fixed and change only the answer seed to measure positional bias. If omitted, `--answer-seed` equals `--seed` and existing run behavior is preserved.
+
+Use `python3 -m conceptladder calibrate results/*.json --out results/calibration.json` to see per-level/per-family accuracy, option-position sensitivity, and matching-model comparisons. Raw unambiguous letter responses are reparsed in this audit; original run files remain unchanged.
+
+### Initial local calibration (no thinking, temperature 0)
+
+| Question / answer seeds | Qwen3 4B-class Q4 | Qwen3 14B Q4_K_M |
+| --- | ---: | ---: |
+| 17 / 17 | 88/240 | 133/240 |
+| 17 / 63 (same questions, reordered options) | 81/240 | 125/240 |
+| 41 / 17 (different scenarios) | 87/240 | 118/240 |
+
+The 14B entry-to-boundary level rates averaged across these three runs are approximately 72%, 54%, 50%, 32%. These results are *exploratory*: the 240 questions are generated from only 15 concept families; answer placement, chat formatting, reasoning budget and model architecture all affect scores. A BF16-vs-Q4 inference requires matching model lineage and a stronger reference baseline.
 
 ## Hard suite: 240 technical scenarios
 
 Hard is the recommended stress test when a model saturates Classic. Instead of obvious distractors, all four answers have the same character length, and the correct answer's position is independently randomized by question.
 
-The 15 scenario families cover:
+The 15 scenario families shared by Hard and Ladder cover:
 - **Networking (96 questions):** TCP reassembly with wraparound, TCP send-window calculations, longest-prefix routing, IPv4 re-fragmentation, CIDR boundary logic, DNS TTL dependencies.
 - **Databases (48 questions):** real SQLite WAL transaction schedules, SQL window frames, LEFT JOIN + NULL behavior.
 - **Linux/systems (48 questions):** actual POSIX `dup` and file-offset behavior, umask/chmod transformations, endian and bitfield computations.
@@ -46,7 +71,7 @@ Two complementary scores are reported:
 
 With one question per level, the depth score is a *pilot diagnostic*, not a psychometrically validated measure of expertise. Do not interpret a one-question difference as proof that a model has gained or lost a capability.
 
-All questions are independently answerable multiple choice; nothing is disclosed from an earlier answer. Correct alternatives are balanced across A/B/C/D for every pack. Scoring requires no LLM judge.
+All questions are independently answerable multiple choice; nothing is disclosed from an earlier answer. Answer alternatives are pseudorandomly positioned across A/B/C/D; per-form balance must be audited rather than assumed. Scoring requires no LLM judge.
 
 ## Run it
 

@@ -10,7 +10,7 @@ ConceptLadder is a small, open-source knowledge-depth benchmark. Instead of mixi
 
 The previous Hard v0.2 was useful for challenging small models, but its four levels were not consistently ordered: a Qwen3 14B pilot scored *worse* on L1 than on L2. Instead of rewriting past benchmark data, v0.3 introduces a separate `--suite ladder`. The old `--suite hard` stays unchanged for exact reproduction of published runs.
 
-Ladder v0.3 makes the entry task simpler for 11 of 15 concepts (including TCP ACKs, SQLite, DNS, file offsets, JWT and RBAC) while leaving the difficult cases at L2–L4. Answers are still determined by local computations or real SQLite/POSIX operations. The initial 14B pilot displayed a strictly descending **aggregate** L1→L4 success rate on three forms; individual concepts can still violate this order, so the levels remain provisional rather than psychometrically validated.
+Ladder v0.3 makes the entry task simpler for 11 of 15 concepts (including TCP ACKs, SQLite, DNS, file offsets, JWT and RBAC) while leaving the difficult cases at L2–L4. Answers are still determined by local computations or real SQLite/POSIX operations. Local 14B and 32B pilots displayed strictly descending **aggregate** L1→L4 success rates on three forms; individual concepts can still violate this order, so the levels remain provisional rather than psychometrically validated. The 32B did not reliably outperform 14B.
 
 ```bash
 python3 -m conceptladder validate --suite ladder
@@ -23,11 +23,11 @@ Use `python3 -m conceptladder calibrate results/*.json --out results/calibration
 
 ### Initial local calibration (no thinking, temperature 0)
 
-| Question / answer seeds | Qwen3 4B-class Q4 | Qwen3 14B Q4_K_M |
-| --- | ---: | ---: |
-| 17 / 17 | 88/240 | 133/240 |
-| 17 / 63 (same questions, reordered options) | 81/240 | 125/240 |
-| 41 / 17 (different scenarios) | 87/240 | 118/240 |
+| Question / answer seeds | 4B-class Q4 | Qwen3 14B Q4 | Qwen3 32B Q4 |
+| --- | ---: | ---: | ---: |
+| 17 / 17 | 88/240 | 133/240 | 120/240 |
+| 17 / 63 (same questions, reordered options) | 81/240 | 125/240 | 131/240 |
+| 41 / 17 (different scenarios) | 87/240 | 118/240 | 117/240 |
 
 The 14B entry-to-boundary level rates averaged across these three runs are approximately 72%, 54%, 50%, 32%. These results are *exploratory*: the 240 questions are generated from only 15 concept families; answer placement, chat formatting, reasoning budget and model architecture all affect scores. A BF16-vs-Q4 inference requires matching model lineage and a stronger reference baseline.
 

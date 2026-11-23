@@ -28,6 +28,15 @@ class CalibrationSuiteTests(unittest.TestCase):
             letters=Counter(materialize(x,seed)[1] for x in items)
             self.assertTrue(all(letters[c]>=30 for c in "ABCD"))
 
+    def test_exact_option_text_scoring(self):
+        from conceptladder.cli import parse_answer
+        for seed in (17,41):
+            item=next(i for i in load_ladder(seed,1) if i["concept"].startswith("sqlite-wal-snapshots") and i["level"]==3)
+            _, expected_letter=materialize(item,seed)
+            self.assertEqual(parse_answer(item["correct"],item,seed),expected_letter)
+            self.assertIsNone(parse_answer("0517 and a lot more",item,seed))
+            self.assertEqual(parse_answer(expected_letter+"\n\nExplanation",item,seed),expected_letter)
+
     def test_answer_seed_is_separate(self):
         items=load_ladder(17,1)
         self.assertEqual(fingerprint(items),fingerprint(load_ladder(17,1)))

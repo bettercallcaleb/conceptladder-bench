@@ -10,6 +10,19 @@ from conceptladder.reporting import inspect_runs
 
 
 class ReportingTests(unittest.TestCase):
+    def test_exact_value_reparse(self):
+        from conceptladder.cli import fingerprint
+        items=load_suite("ladder","db-hard",17,1)
+        rows=[{"id":i["id"],"prediction":None,"raw_response":i["correct"],"error":"unparseable"} for i in items]
+        run={"format":"conceptladder-run-v1","model":"value-only","suite":"ladder","variants":1,
+             "seed":17,"answer_seed":17,"dataset_sha256":fingerprint(items),"responses":rows}
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/"values.json"
+            path.write_text(json.dumps(run))
+            output=inspect_runs([path])
+            self.assertEqual(output["forms"][0]["correct"],12)
+            self.assertEqual(output["forms"][0]["invalid"],0)
+
     def test_calibration_report_and_reparse(self):
         items=load_suite("ladder","db-hard",17,1)
         with tempfile.TemporaryDirectory() as folder:

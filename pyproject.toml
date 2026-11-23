@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "conceptladder-bench"
+version = "0.1.0"
+description = "Small, deterministic knowledge-depth ladders with paired quantization comparisons"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Q4Fit contributors"}]
+dependencies = []
+
+[project.scripts]
+conceptladder = "conceptladder.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["conceptladder*"]
+
+[tool.setuptools.package-data]
+conceptladder = ["packs/*.json"]

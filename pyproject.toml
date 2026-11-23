@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "conceptladder-bench"
-version = "0.2.0"
+version = "0.3.0"
 description = "Small, deterministic knowledge-depth ladders with paired quantization comparisons"
 readme = "README.md"
 requires-python = ">=3.9"

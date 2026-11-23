@@ -30,6 +30,7 @@ class TestConceptLadder(unittest.TestCase):
         self.assertEqual(parse_letter("D."), "D")
         self.assertEqual(parse_letter("B. Readers and one writer can proceed concurrently"), "B")
         self.assertEqual(parse_letter("Answer: A. A specific technical option"), "A")
+        self.assertEqual(parse_letter("Check the window and the ACK.\nFINAL: C"), "C")
         self.assertIsNone(parse_letter("B, because the standard says so"))
         self.assertIsNone(parse_letter("E"))
 

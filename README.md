@@ -4,7 +4,29 @@
 
 ConceptLadder is a small, open-source knowledge-depth benchmark. Instead of mixing unrelated trivia, it puts four progressively harder questions around the *same technical concept*. It also compares the exact same questions across two model builds, including original GGUF and a Q4Fit quantization.
 
-**Pilot v0.1:** 36 original questions, 9 concept ladders, 3 subject packs: TCP, TLS 1.3, and SQLite. MIT licensed. Python standard library only.
+**v0.2:** two separate suites. **Classic** keeps the original 36 introductory MCQs. **Hard** generates **240 deterministic, source-grounded scenario questions** from 15 concept families (4 levels × 4 seeded variants), across networking, databases, Linux, and security. MIT licensed. Python standard library only.
+
+## Hard suite: 240 technical scenarios
+
+Hard is the recommended stress test when a model saturates Classic. Instead of obvious distractors, all four answers have the same character length, and the correct answer's position is independently randomized by question.
+
+The 15 scenario families cover:
+- **Networking (96 questions):** TCP reassembly with wraparound, TCP send-window calculations, longest-prefix routing, IPv4 re-fragmentation, CIDR boundary logic, DNS TTL dependencies.
+- **Databases (48 questions):** real SQLite WAL transaction schedules, SQL window frames, LEFT JOIN + NULL behavior.
+- **Linux/systems (48 questions):** actual POSIX `dup` and file-offset behavior, umask/chmod transformations, endian and bitfield computations.
+- **Security/Kubernetes (48 questions):** JWT time/audience/issuer boundaries, RBAC namespace/subresource scope, hard scheduling feasibility filters.
+
+```bash
+python3 -m conceptladder list --suite hard
+python3 -m conceptladder validate --suite hard
+python3 -m conceptladder run   --suite hard --variants 4 --seed 17   --url http://127.0.0.1:8080/v1 --model local   --out results/hard-local.json
+```
+
+To run one domain only, add `--packs net-hard`, `--packs db-hard`, `--packs sys-hard`, or `--packs security-hard`. Run `python3 -m conceptladder score results/hard-local.json` to grade a saved run. Comparisons require the same question-set hash and answer-order seed.
+
+**Important calibration limit:** this is a hard procedural-reasoning stress test, not 240 independent facts. Generated examples are different variants of 15 underlying concepts, so report both item accuracy and per-concept performance. A 4B model may perform near the 25% guessing baseline; if so, a BF16-to-Q4 comparison on that model does not meaningfully measure retention. Use Classic and Hard as complementary diagnostics and include a stronger-model baseline before claiming discrimination.
+
+The Hard source-generation code lives in `conceptladder/hardcases/`; SQLite and POSIX answers are computed using live standard-library operations. Numerical answers come from deterministic reference functions. Test cases have corresponding original documentation links.
 
 ## What it measures
 

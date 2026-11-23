@@ -4,7 +4,22 @@
 
 ConceptLadder is a small, open-source knowledge-depth benchmark. Instead of mixing unrelated trivia, it puts four progressively harder questions around the *same technical concept*. It also compares the exact same questions across two model builds, including original GGUF and a Q4Fit quantization.
 
-**v0.3:** three reproducible suites: **Classic** (36 basic MCQs), **Hard v0.2** (the original 240 challenging technical scenarios, unchanged), and **Ladder v0.3** (240 scenarios with redesigned L1 entry questions and separately controlled question and answer seeds). MIT licensed. Python standard library only.
+**v0.4:** four suites. **Exact v0.4** is the recommended 240-question open-answer technical stress test; historical Classic, Hard v0.2 and Ladder v0.3 multiple-choice suites remain available for reproduction. MIT licensed; Python standard library only.
+
+## Exact v0.4: open-answer stress test
+
+Previous multiple-choice versions have severe answer-option leakage: a no-question numeric ordering heuristic scored 63–65%. These historical scores must not be used for rankings.
+
+Exact v0.4 removes answer options entirely. A model must return the value itself, including numeric results, octal permissions, hex bytes, interface identifiers, SQLite result codes, or ordered 0/1 decision masks for security and networking scenarios. The 15 source-grounded concept templates are shared with older suites; references remain auditable.
+
+    python3 -m conceptladder validate --suite exact
+    python3 -m conceptladder run --suite exact --seed 17 --variants 4 --model local --url http://127.0.0.1:8080/v1 --out results/exact.json
+    python3 -m conceptladder score results/exact.json
+    python3 -m conceptladder blind-audit --out results/blind-audit.json
+
+Blind-audit learns a most-frequent-answer shortcut from seeds 17/41 and tests on held-out seeds 91/123/777 without reading prompts. On Exact v0.4 this baseline achieves 87/720 = **12.1%**, down from the initial open-answer prototype's 25.4%. It is one attack, not a statistical chance baseline. Two seeded Q4 pilots scored 4B-class 55/480 (11.5%), 14B 153/480 (31.9%), 32B 189/480 (39.4%). The 4B run is effectively at the floor; exact formatting failures are counted as incorrect.
+
+Exact ignores answer-order seed because there are no choices. **Do not compare Exact scores with the earlier MCQ percentages.** Model responses must contain an exact final answer; explanations without a clearly isolated final value can be marked invalid. See the [v0.4 independent audit](docs/EXACT_V04_AUDIT.md).
 
 ## Ladder v0.3: calibrated pilot
 
@@ -33,7 +48,7 @@ The 14B entry-to-boundary level rates averaged across these three runs are appro
 
 ## Hard suite: 240 technical scenarios
 
-Hard is the recommended stress test when a model saturates Classic. Instead of obvious distractors, all four answers have the same character length, and the correct answer's position is independently randomized by question.
+Hard is a historical multiple-choice suite retained for reproducibility; use Exact v0.4 for new stress tests. Instead of obvious distractors, all four answers have the same character length, and the correct answer's position is independently randomized by question.
 
 The 15 scenario families shared by Hard and Ladder cover:
 - **Networking (96 questions):** TCP reassembly with wraparound, TCP send-window calculations, longest-prefix routing, IPv4 re-fragmentation, CIDR boundary logic, DNS TTL dependencies.
